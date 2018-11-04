@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
   <Properties>
-    <Property name="globalPattern">%d{YYYY-MM-dd'T'HH:mm:ssZ} [%level] [%t] %logger{36} - %msg%n</Property>
-    <Property name="ROLLBAR_TOKEN"/>
-    <Property name="ROLLBAR_ENV"/>
+    <Property name="globalPattern">
+      %.-4date{ISO8601} [%level] %logger{1.} - %mdc{guild}#%mdc{text-channel}: %msg%n
+    </Property>
   </Properties>
   <Appenders>
     <Console name="Console">
@@ -11,7 +11,6 @@
     </Console>
     <Discord name="Discord">
       <webhookUrl>${env:DISCORD_WEBHOOK}</webhookUrl>
-      <PatternLayout pattern="${globalPattern}"/>
     </Discord>
   </Appenders>
   <Loggers>
