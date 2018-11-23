@@ -1,5 +1,6 @@
 package tech.gdragon
 
+import com.natpryce.konfig.*
 import net.dv8tion.jda.core.AccountType
 import net.dv8tion.jda.core.JDABuilder
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceJoinEvent
@@ -110,7 +111,7 @@ fun testAutoJoin() {
 
     settings
       ?.channels
-      ?.firstOrNull{ it.id.value == 41992802040138956L }
+      ?.firstOrNull { it.id.value == 41992802040138956L }
       ?.let { println(it.id.value) }
   }
 }
@@ -120,5 +121,9 @@ fun main(args: Array<String>) {
 //  basicTest()
 //  dropAllTables()
 //  uploadRecording()
-  testAutoJoin()
+//  testAutoJoin()
+
+  val config: Configuration = ConfigurationProperties.systemProperties() overriding
+    EnvironmentVariables() overriding
+    ConfigurationProperties.fromResource("defaults.properties")
 }

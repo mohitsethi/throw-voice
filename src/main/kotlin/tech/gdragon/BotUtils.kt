@@ -31,7 +31,7 @@ object BotUtils {
       val guild = Guild.findById(channel.guild.idLong)
       val blackList = guild?.settings?.alertBlacklist
       val message = EmbedBuilder()
-        .setAuthor("pawa", "https://www.pawabot.site/", channel.jda.selfUser.avatarUrl)
+        .setAuthor("pawa", "https://www.pawa.im/", channel.jda.selfUser.avatarUrl)
         .setColor(Color.RED)
         .setTitle("Alert!")
         .setDescription("""|$alertMessage
