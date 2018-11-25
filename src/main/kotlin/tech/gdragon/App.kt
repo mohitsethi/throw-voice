@@ -1,17 +1,19 @@
 package tech.gdragon
 
+import com.natpryce.konfig.Configuration
 import com.natpryce.konfig.ConfigurationProperties
 import com.natpryce.konfig.EnvironmentVariables
 import com.natpryce.konfig.overriding
 import fi.iki.elonen.NanoHTTPD
 import org.slf4j.LoggerFactory
-import tech.gdragon.db.Shim
+import tech.gdragon.db.initializeDatabase
+import tech.gdragon.discord.BotConfig
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import tech.gdragon.discord.Bot as DiscordBot
 
-class App private constructor(port: Int, val clientId: String, val inviteUrl: String) : NanoHTTPD(port) {
+class App private constructor(port: Int, val inviteUrl: String) : NanoHTTPD(port) {
   override fun serve(session: NanoHTTPD.IHTTPSession): NanoHTTPD.Response {
     val uri = session.uri
 
@@ -37,21 +39,24 @@ class App private constructor(port: Int, val clientId: String, val inviteUrl: St
      */
     @JvmStatic
     fun main(args: Array<String>) {
-      val config = ConfigurationProperties.systemProperties() overriding
-        EnvironmentVariables() overriding
-        ConfigurationProperties.fromResource("defaults.properties")
+      val config = configuration()
 
-      val token = System.getenv("BOT_TOKEN")
-      val port = System.getenv("PORT")
-      val clientId = System.getenv("CLIENT_ID") // TODO: Can we get rid of this w/o consequences?
-      val dataDirectory = System.getenv("DATA_DIR")
+      val dataDirectory = config[appData]
+      val databaseName = config[appDatabase]
 
       // Connect to database
-      Shim.initializeDatabase("$dataDirectory/settings.db")
+      initializeDatabase("$dataDirectory/$databaseName")
 
-      val bot = DiscordBot(token)
-      val inviteUrl = bot.api.asBot().getInviteUrl(DiscordBot.PERMISSIONS)
-      val app = App(Integer.parseInt(port), clientId, inviteUrl)
+      val botConfig = BotConfig(
+        token = config[Bot.token]
+      )
+
+      val discordBot = DiscordBot(botConfig)
+
+      val botServer = App(
+        port = config[appPort],
+        inviteUrl = discordBot.api.asBot().getInviteUrl(DiscordBot.PERMISSIONS)
+      )
 
       try {
         val recordingsDir = "$dataDirectory/recordings/"
@@ -62,11 +67,17 @@ class App private constructor(port: Int, val clientId: String, val inviteUrl: St
       }
 
       try {
-        logger.info("Starting HTTP Server: http://localhost:" + port)
-        app.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
+        logger.info("Starting HTTP Server: http://localhost:${config[appPort]}")
+        botServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
       } catch (e: IOException) {
         e.printStackTrace()
       }
+    }
+
+    private fun configuration(): Configuration {
+      return ConfigurationProperties.systemProperties() overriding
+        EnvironmentVariables() overriding
+        ConfigurationProperties.fromResource("defaults.properties")
     }
   }
 }

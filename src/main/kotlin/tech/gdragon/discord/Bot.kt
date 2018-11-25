@@ -17,8 +17,9 @@ import tech.gdragon.commands.settings.*
 import tech.gdragon.listener.EventListener
 import javax.security.auth.login.LoginException
 
-class Bot(token: String) {
+class Bot(config: BotConfig) {
   private val logger = KotlinLogging.logger {}
+
   companion object {
     val PERMISSIONS = listOf(
       Permission.MESSAGE_READ,
@@ -35,7 +36,7 @@ class Bot(token: String) {
     try {
       //create bot instance
       api = JDABuilder(AccountType.BOT)
-        .setToken(token)
+        .setToken(config.token)
         .addEventListener(EventListener())
         .build()
         .awaitReady()
@@ -63,7 +64,7 @@ class Bot(token: String) {
       CommandHandler.commands["volume"] = Volume()
     } catch (e: LoginException) {
       logger.error(e) {
-        "Could not authenticate using token: $token"
+        "Could not authenticate using token: ${config.token}"
       }
       e.printStackTrace()
     } catch (e: InterruptedException) {
@@ -77,3 +78,5 @@ class Bot(token: String) {
     }
   }
 }
+
+data class BotConfig(val token: String)

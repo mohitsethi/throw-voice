@@ -1,6 +1,9 @@
 package tech.gdragon
 
-import com.natpryce.konfig.*
+import com.natpryce.konfig.Configuration
+import com.natpryce.konfig.ConfigurationProperties
+import com.natpryce.konfig.EnvironmentVariables
+import com.natpryce.konfig.overriding
 import net.dv8tion.jda.core.AccountType
 import net.dv8tion.jda.core.JDABuilder
 import net.dv8tion.jda.core.events.guild.voice.GuildVoiceJoinEvent
@@ -11,10 +14,10 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import synapticloop.b2.B2ApiClient
-import tech.gdragon.db.Shim
 import tech.gdragon.db.dao.Alias
 import tech.gdragon.db.dao.Channel
 import tech.gdragon.db.dao.Guild
+import tech.gdragon.db.initializeDatabase
 import tech.gdragon.db.table.Tables
 import java.sql.Connection
 
@@ -56,7 +59,7 @@ fun basicTest() {
 }
 
 fun testBiggestChannel() {
-  Shim.initializeDatabase("settings.db")
+  initializeDatabase("settings.db")
   JDABuilder(AccountType.BOT)
     .setToken(System.getenv("TOKEN"))
     .addEventListener(object : ListenerAdapter() {
@@ -76,7 +79,7 @@ fun testBiggestChannel() {
 }
 
 fun testAlerts() {
-  Shim.initializeDatabase("settings.db")
+  initializeDatabase("settings.db")
   JDABuilder(AccountType.BOT)
     .setToken(System.getenv("TOKEN"))
     .addEventListener(object : ListenerAdapter() {
@@ -105,7 +108,7 @@ fun uploadRecording() {
 }
 
 fun testAutoJoin() {
-  Shim.initializeDatabase("./data/settings.db")
+  initializeDatabase("./data/settings.db")
   transaction {
     val settings = Guild.findById(333055724198559745L)?.settings
 
