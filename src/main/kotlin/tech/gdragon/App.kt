@@ -39,7 +39,7 @@ class App private constructor(port: Int, val inviteUrl: String) : NanoHTTPD(port
      */
     @JvmStatic
     fun main(args: Array<String>) {
-      val config = configuration()
+      val config = loadConfiguration()
 
       val dataDirectory = config[appData]
       val databaseName = config[appDatabase]
@@ -48,7 +48,8 @@ class App private constructor(port: Int, val inviteUrl: String) : NanoHTTPD(port
       initializeDatabase("$dataDirectory/$databaseName")
 
       val botConfig = BotConfig(
-        token = config[Bot.token]
+        token = config[Bot.token],
+        version = config[appVersion]
       )
 
       val discordBot = DiscordBot(botConfig)
@@ -58,13 +59,7 @@ class App private constructor(port: Int, val inviteUrl: String) : NanoHTTPD(port
         inviteUrl = discordBot.api.asBot().getInviteUrl(DiscordBot.PERMISSIONS)
       )
 
-      try {
-        val recordingsDir = "$dataDirectory/recordings/"
-        logger.info("Creating recordings directory: {}", recordingsDir)
-        Files.createDirectories(Paths.get(recordingsDir))
-      } catch (e: IOException) {
-        logger.error("Could not create recordings directory", e)
-      }
+      initializeDataDirectory(dataDirectory)
 
       try {
         logger.info("Starting HTTP Server: http://localhost:${config[appPort]}")
@@ -74,7 +69,32 @@ class App private constructor(port: Int, val inviteUrl: String) : NanoHTTPD(port
       }
     }
 
-    private fun configuration(): Configuration {
+    /**
+     * Creates the data directory and cleans up any remnant MP3 files in there
+     */
+    private fun initializeDataDirectory(dataDirectory: String) {
+      try {
+        val recordingsDir = "$dataDirectory/recordings/"
+        logger.info("Creating recordings directory: {}", recordingsDir)
+        val dir = Files.createDirectories(Paths.get(recordingsDir))
+
+        Files
+          .list(dir)
+          .filter { path -> Files.isRegularFile(path) && path.toString().toLowerCase().endsWith(".mp3") }
+          .forEach { path ->
+            try {
+              Files.delete(path)
+              logger.info("Deleting file $path...")
+            } catch (e: IOException) {
+              logger.error("Could not delete: $path", e)
+            }
+          }
+      } catch (e: IOException) {
+        logger.error("Could not create recordings directory", e)
+      }
+    }
+
+    private fun loadConfiguration(): Configuration {
       return ConfigurationProperties.systemProperties() overriding
         EnvironmentVariables() overriding
         ConfigurationProperties.fromResource("defaults.properties")

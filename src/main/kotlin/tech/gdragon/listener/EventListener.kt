@@ -18,12 +18,13 @@ import tech.gdragon.BotUtils
 import tech.gdragon.commands.CommandHandler
 import tech.gdragon.commands.InvalidCommand
 import tech.gdragon.db.dao.Guild
+import tech.gdragon.discord.BotConfig
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import net.dv8tion.jda.core.entities.Guild as DiscordGuild
 
-class EventListener : ListenerAdapter() {
+class EventListener(private val config: BotConfig) : ListenerAdapter() {
 
   private val logger = KotlinLogging.logger {}
 
@@ -120,7 +121,7 @@ class EventListener : ListenerAdapter() {
    */
   override fun onGuildMemberNickChange(event: GuildMemberNickChangeEvent) {
     if (BotUtils.isSelfBot(event.jda, event.user)) {
-      if(event.guild.audioManager.isConnected) {
+      if (event.guild.audioManager.isConnected) {
         logger.debug {
           "${event.guild}#: Attempting to change nickname from ${event.prevNick} -> ${event.newNick}"
         }
@@ -131,7 +132,7 @@ class EventListener : ListenerAdapter() {
   }
 
   override fun onReady(event: ReadyEvent) {
-    val version = System.getenv("VERSION")
+    val version = config.version
     event
       .jda
       .presence.game = object : Game("$version | https://www.pawa.im", "https://www.pawa.im", Game.GameType.DEFAULT) {
@@ -147,38 +148,6 @@ class EventListener : ListenerAdapter() {
         tech.gdragon.db.dao.Guild.findOrCreate(it.idLong, it.name)
       }
     }
-
-    try {
-      // TODO Remove this var dubdubdub part we don't ever want to put stuff there
-      var dir = Paths.get("/var/www/html/")
-      if (Files.notExists(dir)) {
-        val dataDirectory = System.getenv("DATA_DIR")
-        dir = Files.createDirectories(Paths.get("$dataDirectory/recordings/"))
-        logger.info("Creating: " + dir.toString())
-      }
-
-      Files
-        .list(dir)
-        .filter { path -> Files.isRegularFile(path) && path.toString().toLowerCase().endsWith(".mp3") }
-        .forEach { path ->
-          try {
-            Files.delete(path)
-            logger.info("Deleting file $path...")
-          } catch (e1: IOException) {
-            logger.error("Could not delete: " + path, e1)
-          }
-        }
-    } catch (e1: IOException) {
-      logger.error("Error preparing to read recordings", e1)
-    }
-
-    //check for servers to join
-/*    for (g in event.jda.guilds) {
-      val biggest = BotUtils.biggestChannel(g)
-      if (biggest != null) {
-        BotUtils.joinVoiceChannel(BotUtils.biggestChannel(g), false)
-      }
-    }*/
   }
 }
 

@@ -37,7 +37,7 @@ class Bot(config: BotConfig) {
       //create bot instance
       api = JDABuilder(AccountType.BOT)
         .setToken(config.token)
-        .addEventListener(EventListener())
+        .addEventListener(EventListener(config))
         .build()
         .awaitReady()
 
@@ -79,4 +79,4 @@ class Bot(config: BotConfig) {
   }
 }
 
-data class BotConfig(val token: String)
+data class BotConfig(val token: String, val version: String)
