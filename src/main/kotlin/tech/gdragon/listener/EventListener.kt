@@ -19,9 +19,6 @@ import tech.gdragon.commands.CommandHandler
 import tech.gdragon.commands.InvalidCommand
 import tech.gdragon.db.dao.Guild
 import tech.gdragon.discord.BotConfig
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Paths
 import net.dv8tion.jda.core.entities.Guild as DiscordGuild
 
 class EventListener(private val config: BotConfig) : ListenerAdapter() {
@@ -133,16 +130,14 @@ class EventListener(private val config: BotConfig) : ListenerAdapter() {
 
   override fun onReady(event: ReadyEvent) {
     val version = config.version
+    val website = config.website
     event
       .jda
-      .presence.game = object : Game("$version | https://www.pawa.im", "https://www.pawa.im", Game.GameType.DEFAULT) {
-
-    }
+      .presence.game = object : Game("$version | $website", website, Game.GameType.DEFAULT) {}
 
     logger.info { "ONLINE: Connected to ${event.jda.guilds.size} guilds!" }
 
     // Add guild if not present
-
     event.jda.guilds.forEach {
       transaction {
         tech.gdragon.db.dao.Guild.findOrCreate(it.idLong, it.name)
@@ -150,4 +145,3 @@ class EventListener(private val config: BotConfig) : ListenerAdapter() {
     }
   }
 }
-
