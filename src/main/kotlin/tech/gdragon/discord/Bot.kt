@@ -79,4 +79,17 @@ class Bot(config: BotConfig) {
   }
 }
 
-data class BotConfig(val token: String, val version: String, val website: String)
+data class BotConfig(
+  val token: String,
+  val version: String,
+  val website: String,
+  val datastore: DataStoreConfig
+)
+
+data class DataStoreConfig(
+  val bucketId: String,
+  val bucketName: String,
+  val accountId: String,
+  val accountKey: String,
+  val baseUrl: String
+)
