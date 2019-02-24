@@ -99,6 +99,7 @@ class CombinedAudioRecorderHandler(val volume: Double, val voiceChannel: VoiceCh
 
     subject = PublishSubject.create()
     uuid = UUID.randomUUID()
+    val filenameExtension = "mp3"
     filename = "$dataDirectory/recordings/$uuid.mp3"
     queueFilename = "$dataDirectory/recordings/$uuid.queue"
     queueFile = QueueFile(File(queueFilename))
